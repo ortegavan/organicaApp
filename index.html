@@ -7,6 +7,47 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <div id="produtos"></div>
+    <script>
+        exibirProdutos();
+
+        async function buscarProdutos() 
+        {
+            let response = await fetch("https://apiorganica.azurewebsites.net/produto/tanaepoca");
+            let produtos = await response.json();
+
+            return produtos;
+        }
+
+        async function buscarImagens(codigoProduto)
+        {
+            let response = await fetch("https://apiorganica.azurewebsites.net/imagem/" + codigoProduto);
+            let imagem = await response.json();
+
+            return imagem;
+        }
+
+        async function exibirProdutos()
+        {
+            let produtos = await buscarProdutos();
+            let div = document.querySelector("#produtos");            
+
+            produtos.forEach(async produto => {
+                let imagens = await buscarImagens(produto.codigo);
+                let imagem = imagens.filter(i => i.principal)[0];
+
+                console.log(imagem);
+
+                div.innerHTML += produto.titulo + "<br>";
+                div.innerHTML += "<img src=\"" + montarUrlImagem(imagem.codigo, imagem.extensao) + "\"><br>";
+            });
+        }
+
+        function montarUrlImagem(codigo, extensao)
+        {
+            let url = "https://white-hill-0b791be10.1.azurestaticapps.net/img/";        
+            return url + codigo.toString().padStart(4, "0") + extensao;
+        }
+    </script>
 </body>
 </html>
