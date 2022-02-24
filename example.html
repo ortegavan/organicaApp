@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            object-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="produtos"></div>
+    <script>
+        exibirProdutos();
+
+        async function buscarProdutos() 
+        {
+            let response = await fetch("https://apiorganica.azurewebsites.net/produtos/tanaepoca");
+            let produtos = await response.json();
+
+            return produtos;
+        }
+
+        async function buscarImagens(codigoProduto)
+        {
+            let response = await fetch("https://apiorganica.azurewebsites.net/imagens/" + codigoProduto);
+            let imagem = await response.json();
+
+            return imagem;
+        }
+
+        async function exibirProdutos()
+        {
+            let produtos = await buscarProdutos();
+            let div = document.querySelector("#produtos");            
+
+            produtos.forEach(async produto => {
+                let imagens = await buscarImagens(produto.codigo);
+                let imagem = imagens.filter(i => i.principal)[0];
+
+                console.log(imagem);
+
+                div.innerHTML += produto.titulo + "<br>";
+                div.innerHTML += "<img src=\"" + montarUrlImagem(imagem.codigo, imagem.extensao) + "\"><br>";
+            });
+        }
+
+        function montarUrlImagem(codigo, extensao)
+        {
+            let url = "https://white-hill-0b791be10.1.azurestaticapps.net/img/";        
+            return url + codigo.toString().padStart(4, "0") + extensao;
+        }
+    </script>
+</body>
+</html>
