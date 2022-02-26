@@ -6,24 +6,39 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exemplo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"> 
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <style>
+        body, button {
+            font-family: 'Poppins', sans-serif;
+        }
+
         img {
-            width: 200px;
-            height: 200px;
+            width: 160px;
+            height: 160px;
             object-fit: cover;
             object-position: center;
+        }
+
+        #produtos {
+            display: flex;
+            gap: 16px;
         }
     </style>
 </head>
 
 <body>
+    <h2>Frutas:</h2>
     <div id="produtos"></div>
+    <h2>Cesta:</h2>
     <div id="cesta"></div>
     <script>
         exibirProdutos();
+        exibirCarrinho();   
 
         async function buscarProdutos() {
-            let response = await fetch("https://apiorganica.azurewebsites.net/produtos/tanaepoca");
+            let response = await fetch("https://apiorganica.azurewebsites.net/produtos/porcategoria/1");
             let produtos = await response.json();
 
             return produtos;
@@ -36,24 +51,73 @@
             return imagem;
         }
 
+        async function buscarCarrinho(codigoUsuario) {
+            let response = await fetch("https://apiorganica.azurewebsites.net/carrinho/" + codigoUsuario);
+            let carrinho = await response.json();
+
+            return carrinho;
+        }
+
         async function exibirProdutos() {
             let produtos = await buscarProdutos();
             let div = document.querySelector("#produtos");
 
             produtos.forEach(async produto => {
                 let imagens = await buscarImagens(produto.codigo);
-                let imagem = imagens.filter(i => i.principal)[0];
+                let imagem = imagens.filter(i => i.principal)[0];                           
 
-                console.log(imagem);
-
-                div.innerHTML += produto.titulo + "<br>";
-                div.innerHTML += "<img src=\"" + montarUrlImagem(imagem.codigo, imagem.extensao) + "\"><br>";
+                div.innerHTML += `
+                <div>
+                    ${produto.titulo}<br>
+                    <img src="${montarUrlImagem(imagem.codigo, imagem.extensao)}"><br>
+                    <button onclick="atualizarCarrinho(1, ${produto.codigo}, 1)">Comprar</button>
+                </div>
+                `;
             });
+        }
+
+        async function exibirCarrinho() {
+            let carrinho = await buscarCarrinho(1);
+            let div = document.querySelector("#cesta");
+
+            div.innerHTML = "";
+
+            carrinho.itens.forEach(item => {
+                div.innerHTML += `
+                ${item.produto.titulo}<br>
+                R$ ${item.produto.valorFinal.toFixed(2)}<br>
+                <button onclick="atualizarCarrinho(1, ${item.produto.codigo}, ${item.quantidade-1})"> - </button> ${item.quantidade} <button onclick="atualizarCarrinho(1, ${item.produto.codigo}, ${item.quantidade+1})"> + </button><br><br>
+                `;
+            });
+
+            div.innerHTML += `Total R$ ${carrinho.valorSubtotal.toFixed(2)}`;
         }
 
         function montarUrlImagem(codigo, extensao) {
             let url = "https://white-hill-0b791be10.1.azurestaticapps.net/img/";
             return url + codigo.toString().padStart(4, "0") + extensao;
+        }
+
+        async function atualizarCarrinho(codigoUsuario, codigoProduto, quantidade) {
+            await fetch("https://apiorganica.azurewebsites.net/carrinho", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",                
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigoUsuario: codigoUsuario,
+                    itens: [{
+                        produto: {
+                            codigo: codigoProduto
+                        },
+                        quantidade: quantidade
+                    }]
+                })
+            });
+
+            exibirCarrinho();
         }
     </script>
 </body>
