@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Exemplo</title>
     <style>
         img {
             width: 200px;
@@ -14,31 +15,30 @@
         }
     </style>
 </head>
+
 <body>
     <div id="produtos"></div>
+    <div id="cesta"></div>
     <script>
         exibirProdutos();
 
-        async function buscarProdutos() 
-        {
+        async function buscarProdutos() {
             let response = await fetch("https://apiorganica.azurewebsites.net/produtos/tanaepoca");
             let produtos = await response.json();
 
             return produtos;
         }
 
-        async function buscarImagens(codigoProduto)
-        {
+        async function buscarImagens(codigoProduto) {
             let response = await fetch("https://apiorganica.azurewebsites.net/imagens/" + codigoProduto);
             let imagem = await response.json();
 
             return imagem;
         }
 
-        async function exibirProdutos()
-        {
+        async function exibirProdutos() {
             let produtos = await buscarProdutos();
-            let div = document.querySelector("#produtos");            
+            let div = document.querySelector("#produtos");
 
             produtos.forEach(async produto => {
                 let imagens = await buscarImagens(produto.codigo);
@@ -51,11 +51,11 @@
             });
         }
 
-        function montarUrlImagem(codigo, extensao)
-        {
-            let url = "https://white-hill-0b791be10.1.azurestaticapps.net/img/";        
+        function montarUrlImagem(codigo, extensao) {
+            let url = "https://white-hill-0b791be10.1.azurestaticapps.net/img/";
             return url + codigo.toString().padStart(4, "0") + extensao;
         }
     </script>
 </body>
+
 </html>
